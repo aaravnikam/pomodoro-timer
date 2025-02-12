@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pomodoro Timer</title>
+  <style>
+    /* Base Styles */
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f4f4f4;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    
+    .container {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      padding: 40px;
+      text-align: center;
+      width: 300px;
+      animation: fadeIn 1s ease-in-out;
+    }
+    
+    h1 {
+      margin-bottom: 20px;
+      color: #333;
+    }
+    
+    .timer {
+      font-size: 48px;
+      margin-bottom: 20px;
+      position: relative;
+    }
+    
+    .buttons {
+      display: flex;
+      justify-content: space-around;
+    }
+    
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      background: #007BFF;
+      color: #fff;
+      transition: background 0.3s;
+    }
+    
+    button:hover {
+      background: #0056b3;
+    }
+    
+    /* Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.8); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    
+    .pulse {
+      animation: pulse 1s infinite;
+    }
+    
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Pomodoro Timer</h1>
+    <div class="timer" id="timer">25:00</div>
+    <div class="buttons">
+      <button id="start">Start</button>
+      <button id="pause" disabled>Pause</button>
+      <button id="reset" disabled>Reset</button>
+    </div>
+    <div id="sessionLabel" style="margin-top:20px; color: #555;">Session: Work</div>
+  </div>
+
+  <script>
+    // Timer Settings (in seconds)
+    const workDuration = 25 * 60;
+    const breakDuration = 5 * 60;
+    
+    let timer = workDuration;
+    let interval = null;
+    let isWorkSession = true;
+    
+    // DOM Elements
+    const timerDisplay = document.getElementById('timer');
+    const sessionLabel = document.getElementById('sessionLabel');
+    const startButton = document.getElementById('start');
+    const pauseButton = document.getElementById('pause');
+    const resetButton = document.getElementById('reset');
+    
+    // Update the timer display (MM:SS)
+    function updateTimerDisplay() {
+      const minutes = Math.floor(timer / 60);
+      const seconds = timer % 60;
+      timerDisplay.textContent = 
+        `${minutes < 10 ? '0' : ''}${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+    }
+    
+    // Switch between Work and Break sessions
+    function switchSession() {
+      isWorkSession = !isWorkSession;
+      timer = isWorkSession ? workDuration : breakDuration;
+      sessionLabel.textContent = `Session: ${isWorkSession ? 'Work' : 'Break'}`;
+      // Animate the timer display on session switch
+      timerDisplay.classList.add('pulse');
+      setTimeout(() => timerDisplay.classList.remove('pulse'), 1000);
+      updateTimerDisplay();
+    }
+    
+    // Start the timer
+    function startTimer() {
+      if (interval) return;
+      startButton.disabled = true;
+      pauseButton.disabled = false;
+      resetButton.disabled = false;
+      interval = setInterval(() => {
+        timer--;
+        if (timer < 0) {
+          clearInterval(interval);
+          interval = null;
+          // Auto-switch sessions when timer finishes
+          switchSession();
+          startTimer(); // Automatically start the next session
+        } else {
+          updateTimerDisplay();
+        }
+      }, 1000);
+    }
+    
+    // Pause the timer
+    function pauseTimer() {
+      if (interval) {
+        clearInterval(interval);
+        interval = null;
+        startButton.disabled = false;
+        pauseButton.disabled = true;
+      }
+    }
+    
+    // Reset the timer to the current session's starting time
+    function resetTimer() {
+      clearInterval(interval);
+      interval = null;
+      timer = isWorkSession ? workDuration : breakDuration;
+      updateTimerDisplay();
+      startButton.disabled = false;
+      pauseButton.disabled = true;
+      resetButton.disabled = true;
+    }
+    
+    // Event Listeners for buttons
+    startButton.addEventListener('click', startTimer);
+    pauseButton.addEventListener('click', pauseTimer);
+    resetButton.addEventListener('click', resetTimer);
+    
+    // Initialize display
+    updateTimerDisplay();
+  </script>
+</body>
+</html>
